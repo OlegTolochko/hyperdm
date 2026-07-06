@@ -117,8 +117,7 @@ def era5_test(args):
     axs[3].set_title("AU")
     for ax in axs:
         ax.axis('off')
-    plt.savefig("era5_result.pdf")
-
+    plt.savefig(args.output or "era5_result.pdf")
 
 if __name__ == "__main__":
     args = parse_test_args()

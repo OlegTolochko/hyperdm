@@ -1,4 +1,5 @@
 from functools import partial
+from pathlib import Path
 
 import cdsapi
 import numpy as np
@@ -8,13 +9,13 @@ from cv2 import resize
 from numpy.lib.stride_tricks import sliding_window_view
 from torch.utils.data import Dataset, random_split
 
-from src.util import normalize_range
-
 
 class ERA5(Dataset):
 
     def __init__(self, image_size: int, split: str, download: bool = False):
-        if download:
+        npy_path = Path("data/era5_t2m.npy")
+        grib_path = Path("data/era5_t2m.grib")
+        if download and not npy_path.exists() and not grib_path.exists():
             print("Downloading ERA5 (takes ~1hr)...")
             dataset_name = "reanalysis-era5-single-levels"
             request = {
@@ -28,14 +29,17 @@ class ERA5(Dataset):
                 "area": [83, -169, 7, -35]
             }
             client = cdsapi.Client()
-            client.retrieve(dataset_name, request, 'data/era5_t2m.grib')
+            client.retrieve(dataset_name, request, grib_path)
         print("Loading dataset...")
-        dataset = xr.open_dataset("data/era5_t2m.grib")["t2m"].values
+        if npy_path.exists():
+            dataset = np.load(npy_path)
+        else:
+            dataset = xr.open_dataset(grib_path)["t2m"].values
 
         # Pre-processing
         resize_func = partial(resize, dsize=(image_size, image_size))
         dataset = np.array(list(map(resize_func, dataset)))
-        dataset = normalize_range(dataset, low=-1, high=1)
+        dataset = ((dataset - 210) / (313 - 210)) * 2 - 1
 
         # Splits dataset into staggered time steps
         windows = sliding_window_view(dataset, window_shape=2, axis=0)

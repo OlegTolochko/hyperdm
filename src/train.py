@@ -42,7 +42,12 @@ if __name__ == "__main__":
     hyperdm = HyperDM(primary_net, args.hyper_net_dims, diffusion).to(device)
     hyperdm.print_stats()
     hyperdm.train()
-    optimizer = th.optim.AdamW(hyperdm.parameters(), args.lr)
+    if args.optimizer == "adam":
+        optimizer = th.optim.Adam(hyperdm.parameters(), args.lr)
+    elif args.optimizer == "adamw":
+        optimizer = th.optim.AdamW(hyperdm.parameters(), args.lr)
+    else:
+        raise NotImplementedError()
 
     # Training loop
     dataloader = DataLoader(dataset,

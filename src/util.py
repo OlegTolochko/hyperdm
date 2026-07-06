@@ -47,6 +47,9 @@ def parse_train_args():
     parser.add_argument("--batch_size", type=int, default=64)
     parser.add_argument("--diffusion_steps", type=int, default=1000)
     parser.add_argument("--hyper_net_dims", type=int, nargs="+")
+    parser.add_argument("--optimizer",
+                        choices=["adam", "adamw"],
+                        default="adamw")
     return parser.parse_args()
 
 
@@ -62,4 +65,5 @@ def parse_test_args():
     parser.add_argument("--N", type=int, default=100)
     parser.add_argument("--diffusion_steps", type=int, default=1000)
     parser.add_argument("--hyper_net_dims", type=int, nargs="+")
+    parser.add_argument("--output", type=str)
     return parser.parse_args()
